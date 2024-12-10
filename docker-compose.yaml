@@ -298,27 +298,6 @@ services:
       - 8888:8888
       - 10000:10000
       - 10001:10001
-#
-#  spark-master:
-#    <<: *spark-common
-#    command: bin/spark-class org.apache.spark.deploy.master.Master
-#    ports:
-#      - "9090:8080"
-#      - "7077:7077"
-#    networks:
-#      iceberg_network:
-#  spark-worker:
-#    <<: *spark-common
-#    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
-#    depends_on:
-#      - spark-master
-#    environment:
-#      SPARK_MODE: worker
-#      SPARK_WORKER_CORES: 2
-#      SPARK_WORKER_MEMORY: 1g
-#      SPARK_MASTER_URL: spark://spark-master:7077
-#    networks:
-#      iceberg_network:
 
   dbt:
     image: ghcr.io/dbt-labs/dbt-core:1.7.19@sha256:ca6115aceceba64514806129ffdf96e5ace3d415ff0f8198af9747ba5dc9d6a4
