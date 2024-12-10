@@ -1,0 +1,20 @@
+default:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: /opt/airflow/data/data.duckdb
+      filesystems:
+        - fs: s3
+          anon: false
+          key: minioadmin
+          secret: minioadmin
+          client_kwargs:
+            endpoint_url: "http://minio:9000"
+      external_root: "s3://bucket/"
+      threads: 4
+      extensions:
+        - httpfs
+        - parquet
+
+
