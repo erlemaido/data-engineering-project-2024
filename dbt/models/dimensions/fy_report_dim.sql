@@ -13,7 +13,7 @@ WITH fy_general_data AS (
             ELSE FALSE
         END AS audited,
         audit_type,
-        auditor_decision AS audit_decision
+        audit_decision
     FROM {{ ref('staging_report_general_data') }}
 )
 

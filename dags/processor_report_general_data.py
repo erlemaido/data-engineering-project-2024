@@ -1,45 +1,43 @@
 import os
-import boto3
-from botocore import UNSIGNED
-from botocore.config import Config
 import duckdb
-from pyiceberg.catalog import load_rest
 from pyiceberg.schema import Schema
 from pyiceberg.types import StringType, IntegerType, NestedField, DateType
-from file_processing_methods import upload_to_minio
+from s3_client import list_files, download_file
+from iceberg_manager import upload_to_minio, create_namespace_if_not_exists, load_table, create_table_if_not_exists
+
 
 BASE_DIR = '/opt/airflow/data'
 ARCHIVE_DIR = os.path.join(BASE_DIR, 'archive', 'report_general_data')
-catalog = load_rest(name="rest",
-                    conf={
-                        "uri": "http://iceberg_rest:8181/",
-                        "s3.endpoint": "http://minio:9000",
-                        "s3.access-key-id": "minioadmin",
-                        "s3.secret-access-key": "minioadmin",
-                    },
-                    )
-namespace = "staging"
-table_name = "report_general_data"
-BUCKET_NAME = "ltat-02-007-project"
-PREFIX = "report_general_data/"
-REGION = "eu-north-1"
+BUCKET_NAME = 'ltat-02-007-project'
+PREFIX = 'report_general_data/'
+NAMESPACE = "staging"
+TABLE_NAME = "report_general_data"
 
-def get_anonymous_s3_client():
-    """Returns an S3 client for public access with anonymous credentials."""
-    return boto3.client(
-        "s3",
-        region_name="eu-north-1",
-        config=Config(signature_version=UNSIGNED)
-    )
+def process_report_general_data():
+    conn = duckdb.connect(TABLE_NAME)
+    configure_duckdb(conn)
 
-def process_reports_general_data():
-    """
-    Processes tax data files and stores them in DuckDB staging and Iceberg.
-    """
-    # Connect to DuckDB
-    conn = duckdb.connect(table_name)
+    file_list = list_files(BUCKET_NAME, PREFIX)
+    for s3_key in file_list:
+        filename = os.path.basename(s3_key)
+        local_filepath = os.path.join(ARCHIVE_DIR, filename)
 
-    # Enable Iceberg integration (if needed)
+        print(f"Downloading and processing file: {filename}")
+        download_file(BUCKET_NAME, s3_key, local_filepath)
+
+        bucket_name = "bucket"
+        s3_url = f"s3://{bucket_name}/{filename}"
+        upload_to_minio(local_filepath, filename)
+        create_table(conn, s3_url, filename)
+
+        print(f"Processed and archived: {filename}")
+
+    pq_file_path = os.path.join(BASE_DIR, f"{TABLE_NAME}.parquet")
+    load_table(NAMESPACE, TABLE_NAME).scan().to_pandas().to_parquet(pq_file_path)
+    upload_to_minio(pq_file_path, f"{TABLE_NAME}.parquet")
+    conn.close()
+
+def configure_duckdb(conn):
     conn.sql("""
     SET s3_region='us-east-1';
     SET s3_url_style='path';
@@ -49,37 +47,6 @@ def process_reports_general_data():
     SET s3_use_ssl=false;
     """)
 
-    # List files from S3 bucket
-    s3 = get_anonymous_s3_client()
-    response = s3.list_objects_v2(Bucket=BUCKET_NAME, Prefix=PREFIX)
-    file_list = [item['Key'] for item in response.get('Contents', []) if item['Key'].endswith('.csv')]
-
-    for s3_key in file_list:
-        filename = os.path.basename(s3_key)
-        local_filepath = os.path.join(ARCHIVE_DIR, filename)
-
-        print(f"Downloading and processing file: {filename}")
-        download_file_from_s3(BUCKET_NAME, s3_key, local_filepath)
-
-        bucket_name = "bucket"
-        s3_url = f"s3://{bucket_name}/{filename}"
-        upload_to_minio(local_filepath, filename)
-        create_table(conn, s3_url, filename)
-
-        print(f"Processed and archived: {filename}")
-
-    pq_file_path = os.path.join(BASE_DIR, f"{table_name}.parquet")
-    catalog.load_table(f"{namespace}.{table_name}").scan().to_pandas().to_parquet(pq_file_path)
-    conn.close()
-    upload_to_minio(pq_file_path, f"{table_name}.parquet")
-
-def download_file_from_s3(bucket_name, s3_key, dest_path):
-    """Downloads a file from S3 to a local path."""
-    s3 = get_anonymous_s3_client()
-    with open(dest_path, 'wb') as f:
-        s3.download_fileobj(bucket_name, s3_key, f)
-    print(f"Downloaded: {dest_path}")
-
 def create_table(conn, s3_url, filename):
     table_name_duck = filename.split(".")[0]
     conn.sql(
@@ -87,7 +54,7 @@ def create_table(conn, s3_url, filename):
         "{'report_id': 'VARCHAR', 'filled_report_id': 'VARCHAR', 'reg_code': 'VARCHAR', 'legal_form': 'VARCHAR'," +
         "'status': 'VARCHAR', 'fiscal_year': 'INT', 'consolidated': 'VARCHAR', 'period_start': 'DATE'," +
         "'period_end': 'DATE', 'submission_date': 'DATE', 'audited': 'VARCHAR', 'report_category': 'VARCHAR'," +
-        "'min_category': 'VARCHAR', 'audit_type': 'VARCHAR', 'auditor_decision': 'VARCHAR', 'modification_main': 'VARCHAR'," +
+        "'min_category': 'VARCHAR', 'audit_type': 'VARCHAR', 'audit_decision': 'VARCHAR', 'modification_main': 'VARCHAR'," +
         "'modification_other': 'VARCHAR', 'modification_cont': 'VARCHAR'})")
 
     schema = Schema(
@@ -105,23 +72,14 @@ def create_table(conn, s3_url, filename):
         NestedField(field_id=12, name='report_category', field_type=StringType(), required=False),
         NestedField(field_id=13, name='min_category', field_type=StringType(), required=False),
         NestedField(field_id=14, name='audit_type', field_type=StringType(), required=False),
-        NestedField(field_id=15, name='auditor_decision', field_type=StringType(), required=False),
+        NestedField(field_id=15, name='audit_decision', field_type=StringType(), required=False),
         NestedField(field_id=16, name='modification_main', field_type=StringType(), required=False),
         NestedField(field_id=17, name='modification_other', field_type=StringType(), required=False),
         NestedField(field_id=18, name='modification_cont', field_type=StringType(), required=False),
     )
 
-    try:
-        catalog.create_namespace_if_not_exists(namespace)
-    except:
-        pass
+    create_namespace_if_not_exists(NAMESPACE)
 
-    print(conn.sql(f"show tables"))
     arrow_table = conn.sql(f"SELECT * FROM '{table_name_duck}'").arrow()
 
-    table = catalog.create_table_if_not_exists(
-        identifier=f"{namespace}.{table_name}",
-        schema=schema,
-    )
-
-    table.append(arrow_table)
+    create_table_if_not_exists(NAMESPACE, TABLE_NAME, schema, arrow_table)

@@ -21,7 +21,7 @@ def drop_table():
     catalog.drop_table(f"{namespace}.{table_name}")
 
 
-def create_duckdb_table():
+def connect_duckdb_table():
     conn = duckdb.connect("../data/data.duckdb")
     conn.sql("INSTALL httpfs")
     conn.sql("LOAD httpfs")
@@ -35,12 +35,12 @@ def create_duckdb_table():
     """)
 
     print(conn.sql("select * from fy_report_dim"))
+    print(conn.sql("select * from entity_dim"))
+    print(conn.sql("select * from date_dim"))
+    print(conn.sql("select * from financial_performance_fact"))
+    print(conn.sql("select * from tax_fact"))
 
-    print(conn.sql("select * from date_dim where date_id = 8857"))
 
 
 if __name__ == '__main__':
-    create_duckdb_table()
-    # print([2 for _ in range(5)])
-    # print(select_table())
-    #select_table()
+    connect_duckdb_table()
