@@ -1,17 +1,16 @@
 import os
-import shutil
-
+import boto3
+from botocore import UNSIGNED
+from botocore.config import Config
 import duckdb
 import pyarrow as pa
 from pyiceberg.catalog import load_rest
 from pyiceberg.schema import Schema
 from pyiceberg.types import StringType, IntegerType, NestedField
-
 from file_processing_methods import upload_to_minio
 
 # Directory paths
 BASE_DIR = '/opt/airflow/data'
-INCOMING_DIR = os.path.join(BASE_DIR, 'incoming', 'report_financial_data')
 ARCHIVE_DIR = os.path.join(BASE_DIR, 'archive', 'report_financial_data')
 catalog = load_rest(name="rest",
                     conf={
@@ -23,11 +22,21 @@ catalog = load_rest(name="rest",
                     )
 namespace = "staging"
 table_name = "report_financial_data"
+BUCKET_NAME = "ltat-02-007-project"
+PREFIX = "report_financial_data/"
+REGION = "eu-north-1"
 
+def get_anonymous_s3_client():
+    """Returns an S3 client for public access with anonymous credentials."""
+    return boto3.client(
+        "s3",
+        region_name="eu-north-1",
+        config=Config(signature_version=UNSIGNED)
+    )
 
 def process_reports_financial_data():
     """
-    Processes tax data files and stores them in DuckDB staging and Iceberg.
+    Processes tax data files fetched from an S3 bucket and stores them in DuckDB staging and Iceberg.
     """
     # Connect to DuckDB
     conn = duckdb.connect(table_name)
@@ -37,30 +46,41 @@ def process_reports_financial_data():
     SET s3_region='us-east-1';
     SET s3_url_style='path';
     SET s3_endpoint='minio:9000';
-    SET s3_access_key_id='minioadmin' ;
+    SET s3_access_key_id='minioadmin';
     SET s3_secret_access_key='minioadmin';
     SET s3_use_ssl=false;
     """)
 
-    # Process each incoming file
-    for filename in os.listdir(INCOMING_DIR):
-        if filename.endswith('.csv'):
-            filepath = os.path.join(INCOMING_DIR, filename)
-            print(f"Processing file: {filename}")
-            bucket_name = "bucket"
-            s3_url = f"s3://{bucket_name}/{filename}"
-            upload_to_minio(filepath, filename)
-            create_table(conn, s3_url, filename)
+    # List files from S3 bucket
+    s3 = get_anonymous_s3_client()
+    response = s3.list_objects_v2(Bucket=BUCKET_NAME, Prefix=PREFIX)
+    file_list = [item['Key'] for item in response.get('Contents', []) if item['Key'].endswith('.csv')]
 
-            # Move the file to the archive directory
-            shutil.move(filepath, os.path.join(ARCHIVE_DIR, filename))
-            print(f"Processed and archived: {filename}")
+    for s3_key in file_list:
+        filename = os.path.basename(s3_key)
+        local_filepath = os.path.join(ARCHIVE_DIR, filename)
+
+        print(f"Downloading and processing file: {filename}")
+        download_file_from_s3(BUCKET_NAME, s3_key, local_filepath)
+
+        bucket_name = "bucket"
+        s3_url = f"s3://{bucket_name}/{filename}"
+        upload_to_minio(local_filepath, filename)
+        create_table(conn, s3_url, filename)
+
+        print(f"Processed and archived: {filename}")
 
     pq_file_path = os.path.join(BASE_DIR, f"{table_name}.parquet")
     catalog.load_table(f"{namespace}.{table_name}").scan().to_pandas().to_parquet(pq_file_path)
     upload_to_minio(pq_file_path, f"{table_name}.parquet")
     conn.close()
 
+def download_file_from_s3(bucket_name, s3_key, dest_path):
+    """Downloads a file from S3 to a local path."""
+    s3 = get_anonymous_s3_client()
+    with open(dest_path, 'wb') as f:
+        s3.download_fileobj(bucket_name, s3_key, f)
+    print(f"Downloaded: {dest_path}")
 
 def create_table(conn, s3_url, filename):
     table_name_duck = filename.split(".")[0]
@@ -77,17 +97,6 @@ def create_table(conn, s3_url, filename):
         NestedField(field_id=5, name='element_value', field_type=IntegerType(), required=False),
         NestedField(field_id=6, name='year', field_type=IntegerType(), required=False),
     )
-
-    catalog = load_rest(name="rest",
-                        conf={
-                            "uri": "http://iceberg_rest:8181/",
-                            "s3.endpoint": "http://minio:9000",
-                            "s3.access-key-id": "minioadmin",
-                            "s3.secret-access-key": "minioadmin",
-                        },
-                        )
-    namespace = "staging"
-    table_name = "report_financial_data"
 
     try:
         catalog.create_namespace_if_not_exists(namespace)
@@ -106,7 +115,6 @@ def create_table(conn, s3_url, filename):
     )
 
     table.append(arrow_table)
-
 
 def get_year(filename):
     filename = filename.replace("4.", "")

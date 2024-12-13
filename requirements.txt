@@ -8,3 +8,6 @@ minio~=7.2.12
 pyspark~=3.0.3
 pyspark-stubs~=3.0.0.post3
 pymongo~=4.10.1
+requests~=2.32.3
+boto3~=1.35.80
+botocore~=1.35.80
