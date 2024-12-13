@@ -190,7 +190,9 @@ services:
           echo
         fi
         mkdir -p /sources/logs /sources/dags /sources/dbt
-        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,dbt}
+        mkdir -p /sources/data/archive/tax_data /sources/data/archive/report_general_data /sources/data/archive/report_financial_data
+        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,dbt,data}
+        chmod -R 775 /sources/data/archive
         exec /entrypoint airflow version
     environment:
       <<: *airflow-common-env

@@ -47,6 +47,8 @@ def upload_to_minio(filepath, filename):
         MINIO_CLIENT.fput_object(BUCKET, filename, filepath)
         print(f"'{filepath}' is successfully uploaded as '{filename}' to bucket '{BUCKET}'.")
 
+        return f"s3://{BUCKET}/{filename}"
+
     except S3Error as e:
         print("S3Error: ", e)
     except Exception as e:

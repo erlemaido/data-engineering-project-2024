@@ -26,9 +26,7 @@ def process_tax_data():
         print(f"Downloading and processing file: {filename}")
         download_file(BUCKET_NAME, s3_key, local_filepath)
 
-        bucket_name = "bucket"
-        s3_url = f"s3://{bucket_name}/{filename}"
-        upload_to_minio(local_filepath, filename)
+        s3_url = upload_to_minio(local_filepath, filename)
         create_table(conn, s3_url, filename)
 
         print(f"Processed and archived: {filename}")
