@@ -1,40 +1,58 @@
 {{ config(materialized='table') }}
 
-WITH entity_data AS (
-    SELECT DISTINCT
+WITH latest_general_data AS (
+    SELECT
         reg_code,
         CAST(legal_form AS STRING) AS legal_form,
         CAST(status AS STRING) AS status,
-        CAST(NULL AS STRING) AS name,
-        CAST(NULL AS STRING) AS type,
-        CAST(NULL AS STRING) AS emtak
+        submission_date,
+        ROW_NUMBER() OVER (PARTITION BY reg_code ORDER BY submission_date DESC) AS row_num
     FROM {{ ref('staging_report_general_data') }}
-
-    UNION ALL
-
-    SELECT DISTINCT
-        reg_code,
-        CAST(NULL AS STRING) AS legal_form,
-        CAST(NULL AS STRING) AS status,
-        CAST(entity_name AS STRING) AS name,
-        CAST(entity_type AS STRING) AS type,
-        CAST(EMTAK_field AS STRING) AS emtak
-    FROM {{ ref('staging_tax_data') }}
 ),
-
-deduplicated_data AS (
+filtered_general_data AS (
     SELECT
         reg_code,
-        MAX(legal_form) AS legal_form,
-        MAX(status) AS status,
-        MAX(name) AS name,
-        MAX(type) AS type,
-        MAX(emtak) AS emtak
-    FROM entity_data
-    GROUP BY reg_code
+        legal_form,
+        status
+    FROM latest_general_data
+    WHERE row_num = 1
+),
+
+latest_tax_data AS (
+    SELECT
+        reg_code,
+        CAST(entity_name AS STRING) AS entity_name,
+        CAST(entity_type AS STRING) AS entity_type,
+        CAST(EMTAK_field AS STRING) AS emtak,
+        year,
+        quarter,
+        ROW_NUMBER() OVER (PARTITION BY reg_code ORDER BY year DESC, quarter DESC) AS row_num
+    FROM {{ ref('staging_tax_data') }}
+),
+filtered_tax_data AS (
+    SELECT
+        reg_code,
+        entity_name,
+        entity_type,
+        emtak
+    FROM latest_tax_data
+    WHERE row_num = 1
+),
+
+combined_data AS (
+    SELECT
+        COALESCE(gd.reg_code, td.reg_code) AS reg_code,
+        gd.legal_form,
+        gd.status,
+        td.entity_name AS name,
+        td.entity_type AS type,
+        td.emtak
+    FROM filtered_general_data gd
+    FULL OUTER JOIN filtered_tax_data td
+    ON gd.reg_code = td.reg_code
 )
 
 SELECT
     ROW_NUMBER() OVER () AS entity_id,
-    dd.*
-FROM deduplicated_data dd
+    cd.*
+FROM combined_data cd

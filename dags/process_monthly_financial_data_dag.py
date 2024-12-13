@@ -14,7 +14,6 @@ default_args = {
     'email_on_retry': False,
 }
 
-
 # Define the DAG
 with DAG(
     'process_monthly_financial_data_dag',
@@ -24,6 +23,7 @@ with DAG(
     max_active_runs=1,
     concurrency=1,
 ) as dag:
+
     # Define processing tasks
     process_reports_general_data = PythonOperator(
         task_id='process_reports_general_data',
