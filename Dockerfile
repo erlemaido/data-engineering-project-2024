@@ -1,6 +1,5 @@
 FROM apache/airflow:2.10.3-python3.9
 USER root
-USER root
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
          openjdk-17-jre-headless \

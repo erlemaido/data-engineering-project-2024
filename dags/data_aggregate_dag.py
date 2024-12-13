@@ -14,7 +14,8 @@ os.environ["AWS_SECRET_ACCESS_KEY"] = "minioadmin"
 default_args = {
     'start_date': datetime(2023, 10, 1),
     'retries': 1,
-    'retry_delay': timedelta(minutes=5)
+    'retry_delay': timedelta(minutes=5),
+    'run_as_user': 'sudo'
 }
 
 dag = DAG(
@@ -60,6 +61,7 @@ read_from_iceberg_task = SparkSubmitOperator(
     task_id='read_from_iceberg',
     application="/opt/airflow/dags/iceberg_import.py",
     conn_id="spark",
+    spark_binary="spark-submit.cmd",
     conf={'spark.sql.extensions': 'org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions',
           'spark.sql.defaultCatalog': 'rest',
           'spark.sql.catalog.rest': 'org.apache.iceberg.spark.SparkCatalog',
