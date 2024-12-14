@@ -34,11 +34,12 @@ def connect_duckdb_table():
     SET s3_use_ssl=false;
     """)
 
-    print(conn.sql("select * from fy_report_dim"))
-    print(conn.sql("select * from entity_dim where name is not NULL and legal_form is not NULL"))
-    print(conn.sql("select * from date_dim"))
+    #print(conn.sql("select * from fy_report_dim"))
+    #print(conn.sql("select * from entity_dim where name is not NULL and legal_form is not NULL"))
+    #print(conn.sql("select * from date_dim"))
+    print(conn.sql("select count(1) from financial_performance_fact"))
     print(conn.sql("select * from financial_performance_fact"))
-    print(conn.sql("select * from tax_fact"))
+    #print(conn.sql("select * from tax_fact"))
 
 
 

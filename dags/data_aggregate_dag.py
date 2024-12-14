@@ -67,7 +67,7 @@ aggregate_task = PythonOperator(
 read_from_iceberg_task = SparkSubmitOperator(
     task_id='read_from_iceberg',
     application="/opt/airflow/dags/iceberg_import.py",
-    conn_id="spark",
+    conn_id="spark_compose",
     spark_binary="spark-submit.cmd",
     conf={'spark.sql.extensions': 'org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions',
           'spark.sql.defaultCatalog': 'rest',
