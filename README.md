@@ -15,7 +15,7 @@
 
 1. Start the Services:
 
-   `docker-compose up --build`
+   `docker compose up --build`
    
    This will initialize the following services:
 
@@ -40,15 +40,15 @@
 
 This project automates the ingestion, processing, and transformation of financial data files. Key steps include:
 
-1. Downloading CSV files from an S3-compatible MinIO bucket.
+1. Downloading CSV files from public S3 bucket.
 2. Processing these files into DuckDB and Iceberg tables.
-3. Uploading processed files back to the S3-compatible MinIO bucket.
+3. Uploading processed files to the MinIO bucket.
 4. Running dbt transformations to create a star schema for analytics.
 
 ## Detailed Workflow
 
 1. File Retrieval:
-   * CSV files are listed and downloaded from MinIO using the list_files and download_file functions. The input files are categorized into three types:
+   * CSV files are listed and downloaded from public S3 bucket using the list_files and download_file functions. The input files are categorized into three types:
      * Fiscal Year Reports General Data: Contains metadata about the entities, including their legal form, status, fiscal year details, and submission dates.
      * Fiscal Year Reports Financial Data: Contains detailed financial performance metrics such as revenue, profit/loss, assets, liabilities, and other key financial indicators.
      * Tax Data: Provides information about tax payments, revenue, employee taxes, and related entity attributes.
@@ -63,7 +63,7 @@ This project automates the ingestion, processing, and transformation of financia
    * A namespace and table are created in Iceberg if they don’t already exist.
    * The processed Arrow table is appended to the Iceberg table using PyIceberg.
 4. Processed File Upload:
-   * Processed .parquet files are saved locally and uploaded back to MinIO for archival and future use.
+   * Processed .parquet files are saved locally and uploaded to MinIO for archival and future use.
 5. dbt Transformation:
    * The dbt project is triggered via a BashOperator in Airflow.
    * dbt transforms the processed data into a star schema comprising:

@@ -309,15 +309,6 @@ services:
       - 10000:10000
       - 10001:10001
 
-  dbt:
-    image: ghcr.io/dbt-labs/dbt-core:1.7.19@sha256:ca6115aceceba64514806129ffdf96e5ace3d415ff0f8198af9747ba5dc9d6a4
-    container_name: dbt
-    volumes:
-      - ./dbt:/usr/app
-    working_dir: /usr/app
-    entrypoint: [ "dbt" ]
-    networks:
-      - iceberg_network
 
 volumes:
   dbt:
