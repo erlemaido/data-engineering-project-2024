@@ -1,9 +1,14 @@
+import os
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from airflow.operators.python import PythonOperator
 
 from client_mongo import insert_aggregates_to_mongo
+
+os.environ["AWS_REGION"] = "us-east-1"
+os.environ["AWS_ACCESS_KEY_ID"] = "minioadmin"
+os.environ["AWS_SECRET_ACCESS_KEY"] = "minioadmin"
 
 default_args = {
     'start_date': datetime(2024, 1, 1),
