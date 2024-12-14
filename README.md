@@ -24,10 +24,15 @@
    * Iceberg REST
    * MongoDB 
    * DuckDB
+   * Spark-Iceberg
+   * dbt
+   * Streamlit
 
 2. Access Airflow: Navigate to http://localhost:8080. Log in with the default credentials (airflow/airflow).
-3. Trigger the DAG: Locate the process_monthly_financial_data_dag in the Airflow UI and trigger it manually or wait for its schedule to execute.
-4. Access Streamlit: Navigate to [http://localhost:8501](http://localhost:8501/). No credentials needed
+3. Trigger the DAG manually or wait for their schedules to execute: 
+   * process_monthly_financial_data_dag for processing financial, general and tax data. 
+   * aggregate_audit_data_dag for aggregating audit data (Works only with Mac! Couldn't get spark-submit work on Windows.)
+4. Access Streamlit: Navigate to [http://localhost:8501](http://localhost:8501/) to explore dashboards, data visualizations and ML outputs. No credentials needed
 
 ### Verifying Outputs
 
@@ -35,15 +40,18 @@
   * The processed .parquet files are uploaded to MinIO under the bucket.
 * dbt Transformations:
   * Verify transformed tables and reports in DuckDB.
+* MongoDB Aggregates:
+  * Audit aggregates are stored in MongoDB. 
 
 ## Short Overview of What Happens
 
 This project automates the ingestion, processing, and transformation of financial data files. Key steps include:
 
-1. Downloading CSV files from public S3 bucket.
-2. Processing these files into DuckDB and Iceberg tables.
-3. Uploading processed files to the MinIO bucket.
-4. Running dbt transformations to create a star schema for analytics.
+1. Data Ingestion: Files are retrieved from a public S3 bucket
+2. Data Processing: Files are processed using DuckDB and saved into Iceberg tables.
+3. Data Transformation: dbt is used to create a star schema
+4. Processing: Spark jobs read and process data from Iceberg tables for aggregation. 
+5. Data Storage: Aggregates are stored in MongoDB. Transformed data is archived in DuckDB for analytics. 
 
 ## Detailed Workflow
 
@@ -64,7 +72,14 @@ This project automates the ingestion, processing, and transformation of financia
    * The processed Arrow table is appended to the Iceberg table using PyIceberg.
 4. Processed File Upload:
    * Processed .parquet files are saved locally and uploaded to MinIO for archival and future use.
-5. dbt Transformation:
+5. Spark Aggregations:
+   * Apache Spark processes datasets using distributed computing to aggregate data.
+   * Spark reads data directly from Iceberg tables and performs transformations using Spark SQL.
+6. MongoDB Storage:
+    * MongoDB stores aggregated data, such as audit counts by fiscal year and audit status.
+    * After processing with Spark, aggregated .csv results are parsed and inserted into MongoDB.
+    * Aggregates are used for quick access
+7. dbt Transformation:
    * The dbt project is triggered via a BashOperator in Airflow.
    * dbt transforms the processed data into a star schema comprising:
      * Entity Dimension
@@ -72,8 +87,9 @@ This project automates the ingestion, processing, and transformation of financia
      * Fy Report Dimension
      * Financial Performance Fact
      * Tax Fact
-6. Data Validation and Analytics:
+8. Data Validation and Analytics:
    * The final transformed tables are stored in DuckDB for validation and analytics.
+   * MongoDB aggregates are used for efficient querying of high-level metrics.
    * Overviews, proof-of-concept ML and access to raw data are accessible trough Streamlit
 
 # About Project
@@ -106,4 +122,3 @@ Following data sources are used:
 
 * Language Standardization: All original data, regardless of its initial language (Estonian or English), should be standardized to English. This includes translating all field names to English to maintain consistency across the database.
 * Currency Representation: All currency values related to fiscal year report data should be recorded in whole Euros, omitting any cents. 
-* EMTAK Code Preservation: EMTAK codes may contain leading zeros, which are significant and must be preserved. Therefore, these codes should be stored as text strings rather than integers to maintain their integrity.

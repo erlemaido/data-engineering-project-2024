@@ -16,5 +16,3 @@ default:
       extensions:
         - httpfs
         - parquet
-
-

@@ -3,7 +3,7 @@ from airflow import DAG
 from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from airflow.operators.python import PythonOperator
 
-from dags.client_mongo import insert_aggregates_to_mongo
+from client_mongo import insert_aggregates_to_mongo
 
 default_args = {
     'start_date': datetime(2024, 1, 1),
