@@ -311,6 +311,18 @@ services:
     networks:
       - iceberg_network
 
+  sl:
+    container_name: sl
+    build:
+      context: ./app
+      dockerfile: DockerfileStreamlit  
+    volumes:
+      - ./app:/app
+      - ./data:/data
+    ports:
+      - "8501:8501"
+      - "8502:8502"
+
 volumes:
   dbt:
   minio_data:

@@ -1,0 +1,7 @@
+streamlit
+duckdb
+watchdog
+matplotlib
+pandas
+xgboost
+scikit-learn
