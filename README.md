@@ -32,8 +32,8 @@
 2. Access Airflow: Navigate to http://localhost:8080. Log in with the default credentials (airflow/airflow).
 3. Trigger the DAG manually or wait for their schedules to execute: 
    * process_monthly_financial_data_dag for processing financial, general and tax data. 
-   * aggregate_audit_data_dag for aggregating audit data (Works only with Mac! Couldn't get spark-submit work on Windows.)
-4. Access Streamlit: Navigate to [http://localhost:8501](http://localhost:8501/) to explore dashboards, data visualizations and ML outputs. No credentials needed
+   * aggregate_audit_data_dag for aggregating audit data (Works only with Mac! Couldn't get spark-submit to work on Windows.)
+4. Access Streamlit: Navigate to [http://localhost:8501](http://localhost:8501/) to explore dashboards, data visualizations and ML outputs. No credentials needed.
 
 ### Verifying Outputs
 
@@ -72,10 +72,10 @@
 This project automates the ingestion, processing, and transformation of financial data files. Key steps include:
 
 1. Data Ingestion: Files are retrieved from a public S3 bucket
-2. Data Processing: Files are processed using DuckDB and saved into Iceberg tables.
-3. Data Transformation: dbt is used to create a star schema
-4. Processing: Spark jobs read and process data from Iceberg tables for aggregation. 
-5. Data Storage: Aggregates are stored in MongoDB. Transformed data is archived in DuckDB for analytics. 
+2. Data Processing: Files are processed using DuckDB and saved into Iceberg tables. Spark jobs read and process data from Iceberg tables for aggregation.
+3. Data Transformation: dbt is used to create a star schema.  
+5. Data Storage: Aggregates are stored in MongoDB. Transformed data is archived in DuckDB for analytics.
+6. Data Serving: Data visualizations are accessible through Streamlit. 
 
 ## Detailed Workflow
 
@@ -115,7 +115,7 @@ This project automates the ingestion, processing, and transformation of financia
 8. Data Validation and Analytics:
    * The final transformed tables are stored in DuckDB for validation and analytics.
    * MongoDB aggregates are used for efficient querying of high-level metrics.
-   * Overviews, proof-of-concept ML and access to raw data are accessible trough Streamlit
+   * Overviews, proof-of-concept ML and access to raw data are accessible through Streamlit. 
 
 # About Project
 
