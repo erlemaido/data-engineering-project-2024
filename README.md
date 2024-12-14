@@ -70,7 +70,7 @@ This project automates the ingestion, processing, and transformation of financia
    * A namespace and table are created in Iceberg if they don’t already exist.
    * The processed Arrow table is appended to the Iceberg table using PyIceberg.
 4. Processed File Upload:
-   * Processed .parquet files are saved locally and uploaded to MinIO for archival and future use.
+   * Iceberg tables are exported to .parquet files and uploaded to MinIO for archival and future use. 
 5. Spark Aggregations:
    * Apache Spark processes datasets using distributed computing to aggregate data.
    * Spark reads data directly from Iceberg tables and performs transformations using Spark SQL.
