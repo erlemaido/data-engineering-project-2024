@@ -75,3 +75,35 @@ This project automates the ingestion, processing, and transformation of financia
 6. Data Validation and Analytics:
    * The final transformed tables are stored in DuckDB for validation and analytics.
    * Overviews, proof-of-concept ML and access to raw data are accessible trough Streamlit
+
+# About Project
+
+## Problem statement
+All legal entities in Estonia are registered in the Estonian Business Register. Most of them are required to submit annual fiscal year reports to the register. Legal entities over a certain threshold will need to have their reports audited before submission. These thresholds were last updated in 2017.
+With inflation increasing rapidly over the last few years, the number of entities needing to submit audited reports has also increased, putting a strain on the limited capacity of auditors and creating delays in annual
+report submissions.
+
+## Data
+
+Following data sources are used:
+* Open data tables from the Estonian Tax and Customs Board
+  * Taxes paid, turnover and size of workforce – quarterly data for years 2020-2024.
+  The data is available in downloadable files in .csv format.
+* Open data from Estonian e-Business Register 
+  * General information of reports (until 31.10.2024) - annual reports data
+  * Yearly reports: key indicators - annual fiscal report data for years 2020 - 2023
+
+
+## Business Questions
+
+* Has the number of legal entities required to submit audited reports risen between 2016-2023?
+* Can an auditing requirement be predicted on tax data before the fiscal year ends (on 3 or less quarters of tax data)?
+* Has the auditing requirement and fixed thresholds impacted any specific field of activity more than others?
+
+
+
+## Business Requirements
+
+* Language Standardization: All original data, regardless of its initial language (Estonian or English), should be standardized to English. This includes translating all field names to English to maintain consistency across the database.
+* Currency Representation: All currency values related to fiscal year report data should be recorded in whole Euros, omitting any cents. 
+* EMTAK Code Preservation: EMTAK codes may contain leading zeros, which are significant and must be preserved. Therefore, these codes should be stored as text strings rather than integers to maintain their integrity.

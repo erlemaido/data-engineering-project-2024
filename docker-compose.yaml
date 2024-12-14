@@ -22,13 +22,14 @@ x-airflow-common:
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
     AIRFLOW_CONN_SPARK_COMPOSE: '{
-        "conn_type": "spark",
-        "host": "spark://spark-iceberg",
-        "port": 7077,
-        "extra": {
-          "deploy-mode": "client"
-        }
-    }'
+    "conn_type": "spark",
+    "host": "spark://spark-iceberg",
+    "port": 7077,
+    "extra": {
+      "deploy-mode": "client",
+      "spark-binary": "spark-submit.cmd"
+    }
+}'
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
@@ -201,6 +202,7 @@ services:
         mkdir -p /sources/data/archive/tax_data /sources/data/archive/report_general_data /sources/data/archive/report_financial_data
         chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,dbt,data}
         chmod -R 775 /sources/data/archive
+        chmod -R 775 /sources/data
         exec /entrypoint airflow version
     environment:
       <<: *airflow-common-env
