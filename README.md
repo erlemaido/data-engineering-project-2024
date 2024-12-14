@@ -42,6 +42,29 @@
   * Verify transformed tables and reports in DuckDB.
 * MongoDB Aggregates:
   * Audit aggregates are stored in MongoDB. 
+  * Use the following command to connect to the MongoDB container: 
+  `docker exec -it data-engineering-project-2024-mongodb-1 mongosh`
+  * Run this to check the contents: 
+    ```
+    use default
+
+    var collections = db.getCollectionNames();
+    for(var i = 0; i< collections.length; i++){
+        print('Collection: ' + collections[i]); 
+        db.getCollection(collections[i]).find().forEach(printjson); 
+    }
+    ```
+  * Example document format:
+    ```
+    {
+        _id: '2023_audited_Jah',
+        value: '10019'
+    }
+    {
+        _id: '2023_audited_Ei',
+        value: '236784'
+    }
+    ```
 
 ## Short Overview of What Happens
 
