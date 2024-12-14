@@ -77,7 +77,7 @@ This project automates the ingestion, processing, and transformation of financia
 6. MongoDB Storage:
     * MongoDB stores aggregated data, such as audit counts by fiscal year and audit status.
     * After processing with Spark, aggregated .csv results are parsed and inserted into MongoDB.
-    * Aggregates are used for quick access
+    * Aggregates are used for quick access.
 7. dbt Transformation:
    * The dbt project is triggered via a BashOperator in Airflow.
    * dbt transforms the processed data into a star schema comprising:
