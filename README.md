@@ -64,7 +64,6 @@ This project automates the ingestion, processing, and transformation of financia
 2. File Processing:
    * Each downloaded file is processed in DuckDB, which:
      * Reads the CSV files.
-     * Configures DuckDB for S3 connectivity using credentials.
      * Creates temporary DuckDB tables for data processing.
    * Afterward, the data is converted into PyArrow tables where schema enforcement is applied, and additional columns such as year and quarter are appended based on the filenames.
 3. Iceberg Table Management:
