@@ -27,7 +27,7 @@
 
 2. Access Airflow: Navigate to http://localhost:8080. Log in with the default credentials (airflow/airflow).
 3. Trigger the DAG: Locate the process_monthly_financial_data_dag in the Airflow UI and trigger it manually or wait for its schedule to execute.
-4. Access Streamlit: Navigate to [http://localhost:8081](http://localhost:8501/). No credentials needed
+4. Access Streamlit: Navigate to [http://localhost:8501](http://localhost:8501/). No credentials needed
 
 ### Verifying Outputs
 
