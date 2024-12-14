@@ -15,7 +15,7 @@
 
 1. Start the Services:
 
-   `docker compose up --build`
+   `docker compose up`
    
    This will initialize the following services:
 
@@ -23,8 +23,7 @@
    * MinIO
    * Iceberg REST
    * MongoDB 
-   * DuckDB 
-   * dbt
+   * DuckDB
 
 2. Access Airflow: Navigate to http://localhost:8080. Log in with the default credentials (airflow/airflow).
 3. Trigger the DAG: Locate the process_monthly_financial_data_dag in the Airflow UI and trigger it manually or wait for its schedule to execute.
@@ -71,7 +70,7 @@ This project automates the ingestion, processing, and transformation of financia
      * Date Dimension
      * Fy Report Dimension
      * Financial Performance Fact
-     * Tax Data Fact
+     * Tax Fact
 6. Data Validation and Analytics:
    * The final transformed tables are stored in DuckDB for validation and analytics.
    * They can be queried directly from the s3:// paths.

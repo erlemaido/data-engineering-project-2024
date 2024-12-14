@@ -37,8 +37,9 @@ def connect_duckdb_table():
     #print(conn.sql("select * from fy_report_dim"))
     #print(conn.sql("select * from entity_dim where name is not NULL and legal_form is not NULL"))
     #print(conn.sql("select * from date_dim"))
-    print(conn.sql("select count(1) from financial_performance_fact"))
-    print(conn.sql("select * from financial_performance_fact"))
+    print(conn.sql("SELECT entity_id, COUNT(*) AS tax_fact_count FROM tax_fact GROUP BY entity_id"))
+    print(conn.sql("SELECT entity_id, COUNT(*) AS tax_fact_count FROM entity_dim GROUP BY entity_id"))
+    print(conn.sql("select * from fy_report_dim where fiscal_year = 2020"))
     #print(conn.sql("select * from tax_fact"))
 
 

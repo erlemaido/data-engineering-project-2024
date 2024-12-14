@@ -309,7 +309,6 @@ services:
       - 10000:10000
       - 10001:10001
 
-
 volumes:
   dbt:
   minio_data:
