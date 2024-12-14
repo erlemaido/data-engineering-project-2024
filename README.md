@@ -110,6 +110,8 @@ This project automates the ingestion, processing, and transformation of financia
      * Fy Report Dimension
      * Financial Performance Fact
      * Tax Fact
+     * ![image](https://github.com/user-attachments/assets/a196237e-b5bd-42a0-b414-6455997ba2ff)
+
 8. Data Validation and Analytics:
    * The final transformed tables are stored in DuckDB for validation and analytics.
    * MongoDB aggregates are used for efficient querying of high-level metrics.
