@@ -5,7 +5,8 @@
 ### Prerequisites
 
 1. Docker: Ensure you have Docker installed on your system.
-2. Clone the Repository:
+2. Minimum RAM: 32GB. Note: Some file processing tasks (e.g., large .csv file handling) may fail with less than 32GB RAM due to high memory requirements.
+3. Clone the Repository:
     ```
     git clone https://github.com/erlemaido/data-engineering-project-2024.git
     cd data-engineering-project-2024
