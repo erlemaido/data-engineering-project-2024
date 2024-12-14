@@ -26,8 +26,7 @@ x-airflow-common:
     "host": "spark://spark-iceberg",
     "port": 7077,
     "extra": {
-      "deploy-mode": "client",
-      "spark-binary": "spark-submit.cmd"
+      "deploy-mode": "client"
     }
 }'
   volumes:
