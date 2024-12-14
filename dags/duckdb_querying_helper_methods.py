@@ -27,7 +27,7 @@ def connect_duckdb_table():
     #print(conn.sql("select * from fy_report_dim"))
     #print(conn.sql("select * from entity_dim where name is not NULL and legal_form is not NULL"))
     #print(conn.sql("select * from date_dim"))
-    print(conn.sql("SELECT * FROM entity_dim"))
+    print(conn.sql("SELECT * FROM entity_dim where emtak is not null"))
     #print(conn.sql("select * from tax_fact"))
 
 

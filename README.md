@@ -122,3 +122,53 @@ Following data sources are used:
 
 * Language Standardization: All original data, regardless of its initial language (Estonian or English), should be standardized to English. This includes translating all field names to English to maintain consistency across the database.
 * Currency Representation: All currency values related to fiscal year report data should be recorded in whole Euros, omitting any cents. 
+
+
+# Notes
+
+## DBT and Iceberg
+
+The current implementation for data source and output of dbt is DuckDB, but we also experimented with the possibility of using Iceberg. 
+The Iceberg implementation uses Spark as the query engine, just like Airflow did. Unfortunately we had to keep on using DuckDB, because we implemented the Streamlit solution on top of DuckDB.
+We recognise that the DuckDB solution is technically substandard compared to the Spark + Iceberg solution, due to scalability issues with the single .parquet export.
+
+The following snippets of code are included to show how we would have done it with the Spark + Iceberg way.
+
+This should be in the profiles.yml
+```
+iceberg:
+  target: local
+  outputs:
+    local:
+      type: spark
+      method: session
+      host: spark-iceberg
+      schema: staging
+      port: 7077
+      server_side_parameters:
+        spark.sql.extensions: org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions
+        spark.sql.defaultCatalog: rest
+        spark.sql.catalog.rest: org.apache.iceberg.spark.SparkCatalog
+        spark.sql.catalog.rest.catalog-impl: org.apache.iceberg.rest.RESTCatalog
+        spark.sql.catalog.rest.uri: http://iceberg_rest:8181/
+        spark.hadoop.fs.s3a.endpoint: http://minio:9000
+        spark.sql.catalog.rest.warehouse: s3a://warehouse
+        spark.hadoop.fs.s3a.impl: org.apache.hadoop.fs.s3a.S3AFileSystem
+        spark.sql.catalog.rest.io-impl: org.apache.iceberg.aws.s3.S3FileIO
+        spark.sql.catalog.rest.s3.endpoint: http://minio:9000
+        spark.executorEnv.AWS_REGION: us-east-1
+        AWS_REGION: us-east-1
+        spark.jars.packages: org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.5.2,org.projectnessie.nessie-integrations:nessie-spark-extensions-3.5_2.12:0.80.0,software.amazon.awssdk:bundle:2.24.8,software.amazon.awssdk:url-connection-client:2.24.8
+```
+
+In order to switch between implementations, there is a need to configure the input source.
+```
+SELECT *
+{% if var('database') == 'iceberg' %}
+FROM staging.tax_data
+{% else %}
+FROM read_parquet('s3://bucket/tax_data.parquet')
+{% endif %}
+```
+
+The dbt job should be run with: `dbt run --vars '{database: iceberg}' --profile iceberg`
