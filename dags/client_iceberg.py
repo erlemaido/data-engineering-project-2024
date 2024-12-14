@@ -1,8 +1,4 @@
 from pyiceberg.catalog import load_rest
-from minio import Minio
-from minio.error import S3Error
-
-BUCKET = "bucket"
 
 CATALOG = load_rest(name="rest",
                      conf={
@@ -12,12 +8,6 @@ CATALOG = load_rest(name="rest",
                          "s3.secret-access-key": "minioadmin",
                      })
 
-MINIO_CLIENT = Minio(
-        "minio:9000",
-        access_key="minioadmin",
-        secret_key="minioadmin",
-        secure=False
-    )
 
 def create_namespace_if_not_exists(namespace):
     try:
@@ -35,21 +25,4 @@ def create_table_if_not_exists(namespace, table_name, schema, arrow_table):
     )
     table.append(arrow_table)
 
-def upload_to_minio(filepath, filename):
-    try:
-        # Check if bucket exists; create it if not
-        if not MINIO_CLIENT.bucket_exists(BUCKET):
-            MINIO_CLIENT.make_bucket(BUCKET)
-        else:
-            print(f"Bucket '{BUCKET}' already exists.")
 
-        # Upload the file
-        MINIO_CLIENT.fput_object(BUCKET, filename, filepath)
-        print(f"'{filepath}' is successfully uploaded as '{filename}' to bucket '{BUCKET}'.")
-
-        return f"s3://{BUCKET}/{filename}"
-
-    except S3Error as e:
-        print("S3Error: ", e)
-    except Exception as e:
-        print("Error: ", e)

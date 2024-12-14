@@ -6,7 +6,14 @@ from airflow import DAG
 from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from airflow.operators.python import PythonOperator
 from pymongo import MongoClient
+from airflow.models.connection import Connection
 
+conn = Connection(
+    conn_id="spark",
+    conn_type="spark",
+    host="spark://spark-iceberg",
+    port="7077",
+)
 os.environ["AWS_REGION"] = "us-east-1"
 os.environ["AWS_ACCESS_KEY_ID"] = "minioadmin"
 os.environ["AWS_SECRET_ACCESS_KEY"] = "minioadmin"

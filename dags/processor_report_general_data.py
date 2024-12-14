@@ -2,8 +2,9 @@ import os
 import duckdb
 from pyiceberg.schema import Schema
 from pyiceberg.types import StringType, IntegerType, NestedField, DateType
-from s3_client import list_files, download_file
-from iceberg_manager import upload_to_minio, create_namespace_if_not_exists, load_table, create_table_if_not_exists
+from client_s3 import list_files, download_file
+from client_iceberg import create_namespace_if_not_exists, load_table, create_table_if_not_exists
+from client_minio import upload_to_minio
 
 
 BASE_DIR = '/opt/airflow/data'
