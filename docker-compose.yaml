@@ -21,6 +21,14 @@ x-airflow-common:
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
+    AIRFLOW_CONN_SPARK_COMPOSE: '{
+        "conn_type": "spark",
+        "host": "spark://spark-iceberg",
+        "port": 7077,
+        "extra": {
+          "deploy-mode": "client"
+        }
+    }'
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
@@ -301,6 +309,7 @@ services:
       - 10000:10000
       - 10001:10001
 
+
   dbt:
     image: ghcr.io/dbt-labs/dbt-core:1.7.19@sha256:ca6115aceceba64514806129ffdf96e5ace3d415ff0f8198af9747ba5dc9d6a4
     container_name: dbt
@@ -322,6 +331,7 @@ services:
     ports:
       - "8501:8501"
       - "8502:8502"
+
 
 volumes:
   dbt:

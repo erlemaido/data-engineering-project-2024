@@ -6,7 +6,14 @@ from airflow import DAG
 from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from airflow.operators.python import PythonOperator
 from pymongo import MongoClient
+from airflow.models.connection import Connection
 
+conn = Connection(
+    conn_id="spark",
+    conn_type="spark",
+    host="spark://spark-iceberg",
+    port="7077",
+)
 os.environ["AWS_REGION"] = "us-east-1"
 os.environ["AWS_ACCESS_KEY_ID"] = "minioadmin"
 os.environ["AWS_SECRET_ACCESS_KEY"] = "minioadmin"
@@ -60,7 +67,7 @@ aggregate_task = PythonOperator(
 read_from_iceberg_task = SparkSubmitOperator(
     task_id='read_from_iceberg',
     application="/opt/airflow/dags/iceberg_import.py",
-    conn_id="spark",
+    conn_id="spark_compose",
     spark_binary="spark-submit.cmd",
     conf={'spark.sql.extensions': 'org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions',
           'spark.sql.defaultCatalog': 'rest',
