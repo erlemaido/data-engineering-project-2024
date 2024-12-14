@@ -64,21 +64,20 @@ This project automates the ingestion, processing, and transformation of financia
 2. File Processing:
    * Each downloaded file is processed in DuckDB, which:
      * Reads the CSV files.
-     * Configures DuckDB for S3 connectivity using credentials.
      * Creates temporary DuckDB tables for data processing.
    * Afterward, the data is converted into PyArrow tables where schema enforcement is applied, and additional columns such as year and quarter are appended based on the filenames.
 3. Iceberg Table Management:
    * A namespace and table are created in Iceberg if they don’t already exist.
    * The processed Arrow table is appended to the Iceberg table using PyIceberg.
 4. Processed File Upload:
-   * Processed .parquet files are saved locally and uploaded to MinIO for archival and future use.
+   * Iceberg tables are exported to .parquet files and uploaded to MinIO for archival and future use. 
 5. Spark Aggregations:
    * Apache Spark processes datasets using distributed computing to aggregate data.
    * Spark reads data directly from Iceberg tables and performs transformations using Spark SQL.
 6. MongoDB Storage:
     * MongoDB stores aggregated data, such as audit counts by fiscal year and audit status.
     * After processing with Spark, aggregated .csv results are parsed and inserted into MongoDB.
-    * Aggregates are used for quick access
+    * Aggregates are used for quick access.
 7. dbt Transformation:
    * The dbt project is triggered via a BashOperator in Airflow.
    * dbt transforms the processed data into a star schema comprising:
