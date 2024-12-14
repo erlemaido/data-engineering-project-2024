@@ -75,3 +75,4 @@ This project automates the ingestion, processing, and transformation of financia
 6. Data Validation and Analytics:
    * The final transformed tables are stored in DuckDB for validation and analytics.
    * They can be queried directly from the s3:// paths.
+   * Overviews, proof-of-concept ML and access to raw data are accessible trough Streamlit
